@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/user_statistics_chart.dart';
-import '../database_helper.dart'; // Asegúrate de importar DatabaseHelper
+import '../database_helper.dart'; 
+import '../main.dart';  
+import '../widgets/app_drawer.dart';
 
 class UserStatisticsScreen extends StatefulWidget {
   @override
@@ -27,6 +29,7 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Estadísticas Usuarios')),
+      drawer: AppDrawer(),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

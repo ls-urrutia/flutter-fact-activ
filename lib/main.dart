@@ -5,6 +5,7 @@ import 'database_helper.dart';
 import 'detalle_cuenta_screen.dart'; 
 import 'login_screen.dart'; // Import the login screen
 import 'screens/user_statistics_screen.dart'; // Añade esta línea
+import '../widgets/app_drawer.dart';
 
 
 void main() async {
@@ -77,58 +78,7 @@ class MainScreen extends StatelessWidget {
           ),
         ),
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            ListTile(
-              title: Text('Inicio'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainScreen()),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Creación Cuenta'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => CreacionCuentaScreen()),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Listado'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => ListadoScreen()),
-                );
-              },
-            ),
-            // Añade esta nueva ListTile para la pantalla de estadísticas
-            ListTile(
-              title: Text('Estadísticas de Usuarios'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => UserStatisticsScreen()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: AppDrawer(),
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
@@ -158,17 +108,17 @@ class MainScreen extends StatelessWidget {
           ),
           Container(
             decoration: BoxDecoration(
-              color: Color(0xFF808080), // Background color
-              borderRadius: BorderRadius.circular(12), // Rounded corners
+              color: Color(0xFF808080), // Color gris oscuro para Listado
+              borderRadius: BorderRadius.circular(12),
             ),
-            margin: EdgeInsets.only(top: 1, bottom: 1, left: 1, right: 1), // Different top and bottom margins
+            margin: EdgeInsets.only(top: 1, bottom: 1, left: 1, right: 1),
             child: ListTile(
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
               title: Text(
                 'Listado',
                 style: TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.bold, // Make text bold
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               trailing: Icon(Icons.chevron_right, color: Colors.white),
@@ -176,6 +126,31 @@ class MainScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ListadoScreen()),
+                );
+              },
+            ),
+          ),
+          // Botón para Estadísticas de Usuarios con color gris más suave
+          Container(
+            decoration: BoxDecoration(
+              color: Color(0xFFA9A9A9), // Gris más suave (DarkGray)
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.only(top: 1, bottom: 1, left: 1, right: 1),
+            child: ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              title: Text(
+                'Estadísticas de Usuarios',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: Icon(Icons.chevron_right, color: Colors.white),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserStatisticsScreen()),
                 );
               },
             ),
@@ -286,46 +261,7 @@ class _CreacionCuentaScreenState extends State<CreacionCuentaScreen> {
           ),
         ),
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            ListTile(
-              title: Text('Inicio'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainScreen()), // Redirect to MainScreen
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Creación Cuenta'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => CreacionCuentaScreen()), // Redirect to CreacionCuentaScreen
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Listado'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => ListadoScreen()), // Redirect to ListadoScreen
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: AppDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -510,46 +446,7 @@ class _ListadoScreenState extends State<ListadoScreen> {
           ),
         ),
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            ListTile(
-              title: Text('Inicio'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainScreen()),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Creación Cuenta'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => CreacionCuentaScreen()),
-                );
-              },
-            ),
-            ListTile(
-              title: Text('Listado'),
-              trailing: Icon(Icons.chevron_right),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => ListadoScreen()),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: AppDrawer(),
       body: Column(
         children: [
           Padding(
@@ -614,6 +511,15 @@ class _ListadoScreenState extends State<ListadoScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 
