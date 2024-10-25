@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'database_helper.dart';
 import 'detalle_cuenta_screen.dart'; 
 import 'login_screen.dart'; // Import the login screen
+import 'screens/user_statistics_screen.dart'; // Añade esta línea
 
 
 void main() async {
@@ -84,10 +85,10 @@ class MainScreen extends StatelessWidget {
               title: Text('Inicio'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => MainScreen()), // Redirect to MainScreen
+                  MaterialPageRoute(builder: (context) => MainScreen()),
                 );
               },
             ),
@@ -95,10 +96,10 @@ class MainScreen extends StatelessWidget {
               title: Text('Creación Cuenta'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => CreacionCuentaScreen()), // Redirect to CreacionCuentaScreen
+                  MaterialPageRoute(builder: (context) => CreacionCuentaScreen()),
                 );
               },
             ),
@@ -106,10 +107,22 @@ class MainScreen extends StatelessWidget {
               title: Text('Listado'),
               trailing: Icon(Icons.chevron_right),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => ListadoScreen()), // Redirect to ListadoScreen
+                  MaterialPageRoute(builder: (context) => ListadoScreen()),
+                );
+              },
+            ),
+            // Añade esta nueva ListTile para la pantalla de estadísticas
+            ListTile(
+              title: Text('Estadísticas de Usuarios'),
+              trailing: Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => UserStatisticsScreen()),
                 );
               },
             ),
@@ -601,6 +614,8 @@ class _ListadoScreenState extends State<ListadoScreen> {
     );
   }
 }
+
+
 
 
 
