@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/user_statistics_chart.dart';
 import '../controllers/database_helper.dart'; // Correct path to DatabaseHelper
 import '../widgets/app_drawer.dart';
+import '../main.dart';
 
 class UserStatisticsScreen extends StatefulWidget {
   @override
@@ -18,10 +19,19 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen> {
   }
 
   Future<void> _loadUsers() async {
-    final users = await DatabaseHelper().getUsers();
-    setState(() {
-      _users = users;
-    });
+    try {
+      final users = await DatabaseHelper().getUsers();
+      setState(() {
+        _users = users;
+      });
+      print('Users loaded: $_users');
+    } catch (e) {
+      print('Error loading users: $e');
+      // Optionally, show a SnackBar or some UI feedback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading user data')),
+      );
+    }
   }
 
   @override

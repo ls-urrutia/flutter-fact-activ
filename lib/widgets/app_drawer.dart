@@ -3,6 +3,7 @@ import '../views/main_screen.dart';
 import '../views/user_statistics_screen.dart';
 import '../views/creacion_cuenta_screen.dart';
 import '../views/listado_screen.dart';
+import '../views/login_screen.dart'; // Import the login screen
 
 class AppDrawer extends StatelessWidget {
   @override
@@ -52,6 +53,17 @@ class AppDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => UserStatisticsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            title: Text('Cerrar Sesión'),
+            trailing: Icon(Icons.exit_to_app),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
               );
             },
           ),

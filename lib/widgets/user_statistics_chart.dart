@@ -2,14 +2,45 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import '../utils/user_filters.dart';
 import 'package:flag/flag.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class UserStatisticsChart extends StatelessWidget {
+class UserStatisticsChart extends StatefulWidget {
   final List<Map<String, dynamic>> users;
 
   UserStatisticsChart({required this.users});
 
   @override
+  _UserStatisticsChartState createState() => _UserStatisticsChartState();
+}
+
+class _UserStatisticsChartState extends State<UserStatisticsChart> {
+  Map<String, String> countryNameToCode = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCountryCodes();
+  }
+
+  Future<void> _loadCountryCodes() async {
+    try {
+      Map<String, String> codes = await fetchCountryCodes();
+      setState(() {
+        countryNameToCode = codes;
+      });
+    } catch (e) {
+      print('Error loading country codes: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Ensure countryNameToCode is loaded before using it
+    if (countryNameToCode.isEmpty) {
+      return Center(child: CircularProgressIndicator());
+    }
+
     return Column(
       children: [
         _buildAgeDistributionChart(),
@@ -20,7 +51,7 @@ class UserStatisticsChart extends StatelessWidget {
   }
 
   Widget _buildAgeDistributionChart() {
-    Map<String, int> ageDistribution = getAgeDistribution(users);
+    Map<String, int> ageDistribution = getAgeDistribution(widget.users);
     int totalUsers = ageDistribution.values.fold(0, (sum, count) => sum + count);
 
     List<PieChartSectionData> sections = ageDistribution.entries.map((entry) {
@@ -95,7 +126,7 @@ class UserStatisticsChart extends StatelessWidget {
 
   Widget _buildCountryDistributionChart() {
     return FutureBuilder<Map<String, int>>(
-      future: getCountryDistribution(users),
+      future: getCountryDistribution(widget.users),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator());
@@ -149,17 +180,21 @@ class UserStatisticsChart extends StatelessWidget {
   }
 }
 
-Map<String, String> countryNameToCode = {
-  'Finland': 'FI',
-  'United States': 'US',
-  'Latvia': 'LV',
-  'Netherlands': 'NL',
-  'Denmark': 'DK',
-  'France': 'FR',
-  'Spain': 'ES',
-  'China': 'CN',
-  'Ireland': 'IE',
-  'Ukraine': 'UA',
-  'Chile': 'CL',
-  'Argentina': 'AR',
-};
+Future<Map<String, String>> fetchCountryCodes() async {
+  final response = await http.get(Uri.parse('https://restcountries.com/v3.1/all'));
+
+  if (response.statusCode == 200) {
+    List<dynamic> countries = json.decode(response.body);
+    Map<String, String> countryNameToCode = {};
+
+    for (var country in countries) {
+      String name = country['name']['common'];
+      String code = country['cca2'];
+      countryNameToCode[name] = code;
+    }
+
+    return countryNameToCode;
+  } else {
+    throw Exception('Failed to load country data');
+  }
+}
