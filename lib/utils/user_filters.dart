@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // Define los rangos de edad
 final List<Map<String, dynamic>> ageRanges = [
@@ -33,6 +35,42 @@ Map<String, int> getAgeDistribution(List<Map<String, dynamic>> users) {
             (distribution[range['label'] as String] ?? 0) + 1;
         break;
       }
+    }
+  }
+
+  return distribution;
+}
+
+// Función ficticia para obtener el país desde la dirección
+Future<String> getCountryFromAddress(String address) async {
+  final url = Uri.parse('https://api.opencagedata.com/geocode/v1/json?q=$address&key=eb2200d919294595a1a32a5fed485fce');
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data['results'].isNotEmpty) {
+        return data['results'][0]['components']['country'] ?? 'Unknown';
+      }
+    }
+    return 'Unknown';
+  } catch (e) {
+    print('Error fetching country: $e');
+    return 'Unknown';
+  }
+}
+
+Future<Map<String, int>> getCountryDistribution(List<Map<String, dynamic>> users) async {
+  Map<String, int> distribution = {};
+
+  for (var user in users) {
+    print('user: ${user['address']}');
+    String country = await getCountryFromAddress(user['address']);
+    if (distribution.containsKey(country)) {
+      distribution[country] = distribution[country]! + 1;
+    } else {
+      distribution[country] = 1;
     }
   }
 

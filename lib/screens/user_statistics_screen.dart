@@ -26,24 +26,25 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Estadísticas de Usuarios')),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
-            child: Text(
-              'Distribución de edad por usuarios',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+      appBar: AppBar(title: Text('Estadísticas Usuarios')),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Distribución de usuarios por rango etario',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
+              SizedBox(height: 16),
+              UserStatisticsChart(users: _users),
+            ],
           ),
-          Expanded(
-            child: UserStatisticsChart(users: _users),
-          ),
-        ],
+        ),
       ),
     );
   }
