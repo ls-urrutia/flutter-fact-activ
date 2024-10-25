@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
-import '../screens/user_statistics_screen.dart';
+import '../views/main_screen.dart';
+import '../views/user_statistics_screen.dart';
+import '../views/creacion_cuenta_screen.dart';
+import '../views/listado_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   @override
@@ -25,7 +27,7 @@ class AppDrawer extends StatelessWidget {
             trailing: Icon(Icons.chevron_right),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => CreacionCuentaScreen()),
               );
@@ -36,7 +38,7 @@ class AppDrawer extends StatelessWidget {
             trailing: Icon(Icons.chevron_right),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ListadoScreen()),
               );

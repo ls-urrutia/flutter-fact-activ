@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'main.dart'; // Import your main screen
-import 'database_helper.dart';
+import 'main_screen.dart'; // Correct path to MainScreen
+import '../controllers/database_helper.dart'; // Correct path to DatabaseHelper
 
 class LoginScreen extends StatefulWidget {
   @override

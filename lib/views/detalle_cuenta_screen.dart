@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:act2/database_helper.dart'; // Import the DatabaseHelper
-import 'main.dart';
+import '../controllers/database_helper.dart'; 
+import 'main_screen.dart'; 
 
 class DetalleCuentaScreen extends StatelessWidget {
   final String name;
@@ -103,9 +103,9 @@ class DetalleCuentaScreen extends StatelessWidget {
       // Delay to allow the user to see the success message
       await Future.delayed(Duration(seconds: 1));
 
-      // Navigate back to the ListadoScreen
+      // Navigate back to the MainScreen
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => ListadoScreen()),
+        MaterialPageRoute(builder: (context) => MainScreen()),
         (Route<dynamic> route) => false,
       );
     } else {

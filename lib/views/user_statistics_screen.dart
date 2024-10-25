@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/user_statistics_chart.dart';
-import '../database_helper.dart'; 
-import '../main.dart';  
+import '../controllers/database_helper.dart'; // Correct path to DatabaseHelper
 import '../widgets/app_drawer.dart';
 
 class UserStatisticsScreen extends StatefulWidget {
