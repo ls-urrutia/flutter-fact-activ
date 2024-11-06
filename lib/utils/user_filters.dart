@@ -11,7 +11,8 @@ final List<Map<String, dynamic>> ageRanges = [
 ];
 
 // Función para filtrar usuarios por edad
-List<Map<String, dynamic>> filterUsersByAge(List<Map<String, dynamic>> users, int minAge, int maxAge) {
+List<Map<String, dynamic>> filterUsersByAge(
+    List<Map<String, dynamic>> users, int minAge, int maxAge) {
   return users.where((user) {
     DateTime birthdate = DateTime.parse(user['birthdate']);
     int age = DateTime.now().year - birthdate.year;
@@ -31,7 +32,7 @@ Map<String, int> getAgeDistribution(List<Map<String, dynamic>> users) {
     int age = DateTime.now().year - birthdate.year;
     for (var range in ageRanges) {
       if (age >= range['min'] && age <= range['max']) {
-        distribution[range['label'] as String] = 
+        distribution[range['label'] as String] =
             (distribution[range['label'] as String] ?? 0) + 1;
         break;
       }
@@ -43,7 +44,8 @@ Map<String, int> getAgeDistribution(List<Map<String, dynamic>> users) {
 
 // Función ficticia para obtener el país desde la dirección
 Future<String> getCountryFromAddress(String address) async {
-  final url = Uri.parse('https://api.opencagedata.com/geocode/v1/json?q=$address&key=eb2200d919294595a1a32a5fed485fce');
+  final url = Uri.parse(
+      'https://api.opencagedata.com/geocode/v1/json?q=$address&key=eb2200d919294595a1a32a5fed485fce');
 
   try {
     final response = await http.get(url);
@@ -61,7 +63,8 @@ Future<String> getCountryFromAddress(String address) async {
   }
 }
 
-Future<Map<String, int>> getCountryDistribution(List<Map<String, dynamic>> users) async {
+Future<Map<String, int>> getCountryDistribution(
+    List<Map<String, dynamic>> users) async {
   Map<String, int> distribution = {};
 
   for (var user in users) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'main_screen.dart'; // Correct path to MainScreen
+import 'registro_screen.dart';
 import '../controllers/database_helper.dart'; // Correct path to DatabaseHelper
 
 class LoginScreen extends StatefulWidget {
@@ -28,20 +29,18 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(builder: (context) => MainScreen()),
       );
-      return; 
+      return;
     }
-
 
     final users = await DatabaseHelper().getUsers();
 
     print(users);
-    
+
     final user = users.firstWhere(
-      (user) => user['email'] == email && user['password'] == password, 
-      orElse: () => {}, 
+      (user) => user['email'] == email && user['password'] == password,
+      orElse: () => {},
     );
 
-   
     if (user.isNotEmpty) {
       Navigator.pushReplacement(
         context,
@@ -72,10 +71,12 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: InputDecoration(
                 labelText: 'Usuario',
                 labelStyle: TextStyle(color: Colors.grey), // Change label color
-                prefixIcon: Icon(Icons.person, color: Colors.grey), // Change icon color
+                prefixIcon:
+                    Icon(Icons.person, color: Colors.grey), // Change icon color
                 border: UnderlineInputBorder(), // Change to underline
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF1A90D9)), // Change focused color
+                  borderSide: BorderSide(
+                      color: Color(0xFF1A90D9)), // Change focused color
                 ),
               ),
             ),
@@ -86,34 +87,59 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: InputDecoration(
                 labelText: 'Clave',
                 labelStyle: TextStyle(color: Colors.grey), // Change label color
-                prefixIcon: Icon(Icons.vpn_key, color: Colors.grey), // Change icon color
+                prefixIcon: Icon(Icons.vpn_key,
+                    color: Colors.grey), // Change icon color
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    _isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off,
                     color: Colors.grey, // Change icon color
                   ),
                   onPressed: _togglePasswordVisibility,
                 ),
                 border: UnderlineInputBorder(), // Change to underline
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFF1A90D9)), // Change focused color
+                  borderSide: BorderSide(
+                      color: Color(0xFF1A90D9)), // Change focused color
                 ),
               ),
             ),
             SizedBox(height: 20),
             SizedBox(
-              width: double.infinity, // Make button full width
+              width: double.infinity,
               child: ElevatedButton(
                 onPressed: _login,
                 child: Text('Ingresar'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF1A90D9),
                   foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 16), // Adjust vertical padding
+                  padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.zero, // No rounded corners
+                    borderRadius: BorderRadius.zero,
                   ),
                 ),
+              ),
+            ),
+            SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => RegistroScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF1A90D9),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero,
+                  ),
+                ),
+                child: Text('Registrar nueva cuenta'),
               ),
             ),
           ],

@@ -32,7 +32,8 @@ class _CreacionCuentaScreenState extends State<CreacionCuentaScreen> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final user = data['results'][0];
-        _nameController.text = '${user['name']['first']} ${user['name']['last']}';
+        _nameController.text =
+            '${user['name']['first']} ${user['name']['last']}';
         _emailController.text = user['email'];
         _addressController.text = user['location']['street']['name'];
         _dobController.text = user['dob']['date'].substring(0, 10);
@@ -120,7 +121,8 @@ class _CreacionCuentaScreenState extends State<CreacionCuentaScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese su nombre';
                   }
-                  if (!RegExp(r'^[\p{L}\s]{2,50}$', unicode: true).hasMatch(value)) {
+                  if (!RegExp(r'^[\p{L}\s]{2,50}$', unicode: true)
+                      .hasMatch(value)) {
                     return 'Solo letras y espacios, 2-50 caracteres';
                   }
                   return null;
@@ -202,7 +204,9 @@ class _CreacionCuentaScreenState extends State<CreacionCuentaScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese su contraseña';
                   }
-                  if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$').hasMatch(value)) {
+                  if (!RegExp(
+                          r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$')
+                      .hasMatch(value)) {
                     return 'Requiere mayúsculas, minusculas, número y carácter especial';
                   }
                   return null;

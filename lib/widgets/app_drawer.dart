@@ -61,9 +61,10 @@ class AppDrawer extends StatelessWidget {
             trailing: Icon(Icons.exit_to_app),
             onTap: () {
               Navigator.pop(context);
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => LoginScreen()),
+                (Route<dynamic> route) => false,
               );
             },
           ),
