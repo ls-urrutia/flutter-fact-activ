@@ -4,6 +4,7 @@ import '../views/user_statistics_screen.dart';
 import '../views/creacion_cuenta_screen.dart';
 import '../views/listado_screen.dart';
 import '../views/login_screen.dart'; // Import the login screen
+import '../views/boleta_express/boleta_express_screen.dart'; // Add this import
 
 class AppDrawer extends StatelessWidget {
   @override
@@ -53,6 +54,17 @@ class AppDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => UserStatisticsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            title: Text('Boleta Express'),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => BoletaExpressScreen()),
               );
             },
           ),

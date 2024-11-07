@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -37,6 +35,17 @@ class DatabaseHelper {
         birthdate TEXT NOT NULL,
         address TEXT NOT NULL,
         password TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE products (
+        id INTEGER PRIMARY KEY,
+        stock INTEGER NOT NULL,
+        description TEXT NOT NULL,
+        price REAL NOT NULL,
+        bodega TEXT NOT NULL,
+        activo INTEGER NOT NULL DEFAULT 1
       )
     ''');
   }
