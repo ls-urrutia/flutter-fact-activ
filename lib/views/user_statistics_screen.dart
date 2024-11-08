@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../widgets/user_statistics_chart.dart';
-import '../controllers/database_helper.dart'; // Correct path to DatabaseHelper
+import '../controllers/database_helper.dart';
 import '../widgets/app_drawer.dart';
 
 class UserStatisticsScreen extends StatefulWidget {
+  const UserStatisticsScreen({super.key});
+
   @override
   _UserStatisticsScreenState createState() => _UserStatisticsScreenState();
 }
@@ -26,9 +28,8 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen> {
       print('Users loaded: $_users');
     } catch (e) {
       print('Error loading users: $e');
-      // Optionally, show a SnackBar or some UI feedback
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading user data')),
+        const SnackBar(content: Text('Error loading user data')),
       );
     }
   }
@@ -36,7 +37,7 @@ class _UserStatisticsScreenState extends State<UserStatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Estadísticas Usuarios')),
+      appBar: AppBar(title: const Text('Estadísticas Usuarios')),
       drawer: AppDrawer(),
       body: SingleChildScrollView(
         child: Padding(

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import '../models/boleta_item.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -10,7 +11,11 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
+    if (_database != null && _database!.isOpen) {
+      return _database!;
+    }
+
+    // Reinitialize the database if it is closed
     _database = await _initDatabase();
     return _database!;
   }
@@ -22,6 +27,7 @@ class DatabaseHelper {
       version: 2,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
+      singleInstance: true,
     );
   }
 
@@ -46,6 +52,17 @@ class DatabaseHelper {
         price REAL NOT NULL,
         bodega TEXT NOT NULL,
         activo INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE boleta_items(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo TEXT NOT NULL,
+        descripcion TEXT NOT NULL,
+        cantidad INTEGER NOT NULL,
+        precioUnitario REAL NOT NULL,
+        valorTotal REAL NOT NULL
       )
     ''');
   }
@@ -84,5 +101,85 @@ class DatabaseHelper {
       whereArgs: [id],
     );
     return result > 0;
+  }
+
+  Future<void> deleteUserDatabase() async {
+    String path = join(await getDatabasesPath(), 'user_database.db');
+    await deleteDatabase(path);
+  }
+
+  Future<int> insertBoletaItem(BoletaItem item) async {
+    try {
+      final db = await database;
+      if (!db.isOpen) {
+        _database = null;
+        return insertBoletaItem(item);
+      }
+
+      return await db.transaction((txn) async {
+        return await txn.insert(
+          'boleta_items',
+          item.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      });
+    } catch (e) {
+      print('Error inserting boleta item: $e');
+      if (e.toString().contains('database_closed')) {
+        _database = null;
+        return insertBoletaItem(item);
+      }
+      rethrow;
+    }
+  }
+
+  Future<List<BoletaItem>> getBoletaItems() async {
+    try {
+      final db = await database;
+      if (!db.isOpen) {
+        _database = null;
+        return getBoletaItems();
+      }
+
+      return await db.transaction((txn) async {
+        final List<Map<String, dynamic>> maps = await txn.query('boleta_items');
+        return List.generate(maps.length, (i) {
+          return BoletaItem.fromMap(maps[i]);
+        });
+      });
+    } catch (e) {
+      print('Error getting boleta items: $e');
+      if (e.toString().contains('database_closed')) {
+        _database = null;
+        return getBoletaItems();
+      }
+      rethrow;
+    }
+  }
+
+  Future<int> updateBoletaItem(BoletaItem item) async {
+    final db = await database;
+    return await db.update(
+      'boleta_items',
+      item.toMap(),
+      where: 'id = ?',
+      whereArgs: [item.id],
+    );
+  }
+
+  Future<void> deleteBoletaItem(int id) async {
+    final db = await database;
+    await db.delete(
+      'boleta_items',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> close() async {
+    if (_database != null && _database!.isOpen) {
+      await _database!.close();
+      _database = null;
+    }
   }
 }

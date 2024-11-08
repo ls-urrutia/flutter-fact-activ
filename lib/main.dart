@@ -7,6 +7,10 @@ void main() async {
   // Initialize the database
   await DatabaseHelper().database;
 
+  // Call to delete the database (if needed)
+  await DatabaseHelper()
+      .deleteUserDatabase(); // Add this line to delete the database
+
   runApp(MyApp());
 }
 
