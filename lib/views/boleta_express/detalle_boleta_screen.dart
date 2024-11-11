@@ -6,6 +6,12 @@ import '../../controllers/database_helper.dart';
 import '../../views/boleta_express/boleta_express_screen.dart';
 import '../../views/main_screen.dart';
 import './vista_previa_screen.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import '../../views/boleta_express/boleta_success_screen.dart';
+import '../../services/pdf_service.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 
 class DetalleBoletaScreen extends StatefulWidget {
   final String codigo;
@@ -37,6 +43,8 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
   final TextEditingController _rutController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool emailEnabled = false;
+
+  bool _rutEntered = false;
 
   @override
   void initState() {
@@ -137,7 +145,7 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
     boletaItems.clear();
   }
 
-  void _showLoadingDialog(BuildContext context) {
+  void _showLoadingDialog(BuildContext context, {String message = "Vista Previa..."}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -147,12 +155,19 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
             children: [
               CircularProgressIndicator(),
               SizedBox(width: 20),
-              Text("Vista Previa..."),
+              Text(message),
             ],
           ),
         );
       },
     );
+  }
+
+  // Add this method to generate the PDF
+  Future<List<int>> _generatePdf(List<BoletaItem> items) async {
+    // Implement your PDF generation logic here
+    // Return the generated PDF as a list of bytes
+    return []; // Placeholder return
   }
 
   @override
@@ -192,32 +207,34 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
           title: Text('Boleta Express'),
           centerTitle: true,
           backgroundColor: Color(0xFF1A90D9),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.add),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => BoletaExpressScreen(
-                      activateListener: true,
-                      onItemSaved: (BoletaItem item) async {
-                        try {
-                          await _dbHelper.insertBoletaItem(item);
-                          await _loadBoletaItems();
-                        } catch (e) {
-                          print('Error saving item: $e');
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error al guardar el item')),
-                          );
-                        }
-                      },
-                    ),
+          actions: _currentPage == 0
+              ? [
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BoletaExpressScreen(
+                            activateListener: true,
+                            onItemSaved: (BoletaItem item) async {
+                              try {
+                                await _dbHelper.insertBoletaItem(item);
+                                await _loadBoletaItems();
+                              } catch (e) {
+                                print('Error saving item: $e');
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error al guardar el item')),
+                                );
+                              }
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-          ],
+                ]
+              : [], // Empty list when on second page
         ),
         body: Stack(
           children: [
@@ -475,199 +492,365 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
   }
 
   Widget _buildTotalesPage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 8),
-            color: Color.fromARGB(255, 25, 121, 180),
-            child: Text(
-              'Valor Total',
-              style: TextStyle(color: Colors.white, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 8),
-            color: Colors.grey[200],
-            child: Text(
-              '\$${formatter.format(widget.valorTotal)}',
-              style: TextStyle(fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          SizedBox(height: 16),
-          StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Enviar por correo'),
-                    GestureDetector(
-                      onTap: () async {
-                        setState(() {
-                          emailEnabled = !emailEnabled;
-                        });
-                        if (emailEnabled) {
-                          final result = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DigitarRutScreen(),
-                            ),
-                          );
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setPageState) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 8),
+                color: Color.fromARGB(255, 25, 121, 180),
+                child: Text(
+                  'Valor Total',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 8),
+                color: Colors.grey[200],
+                child: Text(
+                  '\$${formatter.format(_calculateTotal())}',
+                  style: TextStyle(fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Enviar por correo'),
+                  GestureDetector(
+                    onTap: () async {
+                      setPageState(() {
+                        emailEnabled = !emailEnabled;
+                        if (!emailEnabled) {
+                          // Clear both fields when switch is turned off
+                          _rutController.clear();
+                          _emailController.clear();
+                          _rutEntered = false;
+                        }
+                      });
+
+                      if (emailEnabled) {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DigitarRutScreen(),
+                          ),
+                        );
+
+                        setPageState(() {
                           if (result != null) {
                             _rutController.text = result;
+                            _rutEntered = true;
+                          } else {
+                            emailEnabled = false;
+                            _rutEntered = false;
                           }
-                        }
-                      },
-                      child: Container(
-                        width: 35,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: emailEnabled
-                              ? Colors.blue
-                              : const Color.fromARGB(255, 177, 177, 177),
-                        ),
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            AnimatedPositioned(
-                              duration: Duration(milliseconds: 200),
-                              left: emailEnabled ? 25 : -4,
-                              top: -1,
-                              child: Container(
-                                width: 20,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 2,
-                                      offset: Offset(0, 1),
-                                    ),
-                                  ],
-                                ),
+                        });
+                      }
+                    },
+                    child: Container(
+                      width: 35,
+                      height: 18,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: emailEnabled
+                            ? Color.fromARGB(255, 241, 204, 162)
+                            : const Color.fromARGB(255, 177, 177, 177),
+                      ),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          AnimatedPositioned(
+                            duration: Duration(milliseconds: 200),
+                            left: emailEnabled ? 25 : -4,
+                            top: -1,
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: emailEnabled ? Color(0xFFFFB74D) : Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 2,
+                                    offset: Offset(0, 1),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              );
-            },
-          ),
-          SizedBox(height: 8),
-          TextField(
-            controller: _rutController,
-            enabled: emailEnabled,
-            decoration: InputDecoration(
-              hintText: 'RUT',
-              filled: true,
-              fillColor: emailEnabled ? Colors.lightBlue[50] : Colors.grey[200],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.zero,
-                borderSide: BorderSide.none,
-              ),
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-          ),
-          SizedBox(height: 8),
-          TextField(
-            controller: _emailController,
-            enabled: emailEnabled,
-            decoration: InputDecoration(
-              hintText: 'Correo Electrónico',
-              filled: true,
-              fillColor: emailEnabled ? Colors.lightBlue[50] : Colors.grey[200],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.zero,
-                borderSide: BorderSide.none,
-              ),
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              errorText: emailEnabled && _emailController.text.isEmpty
-                  ? 'Campo Obligatorio'
-                  : null,
-            ),
-          ),
-          SizedBox(height: 24),
-          Container(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async {
-                _showLoadingDialog(context);
-
-                try {
-                  // Simulate data fetching
-                  await Future.delayed(Duration(seconds: 2));
-
-                  // Generate the document or view with the list of items
-                  // For example, you can navigate to a new screen that shows the preview
-                  Navigator.pop(context); // Close the loading dialog
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          PreviewScreen(boletaItems: boletaItems),
-                    ),
-                  );
-                } catch (e) {
-                  Navigator.pop(context); // Close the loading dialog
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al generar la vista previa')),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF1A90D9),
-                padding: EdgeInsets.symmetric(vertical: 12),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.search, size: 20),
-                  SizedBox(width: 8),
-                  Text('Vista Previa'),
+                  ),
                 ],
               ),
-            ),
-          ),
-          SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Handle Emitir
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF4CAF50),
-                padding: EdgeInsets.symmetric(vertical: 12),
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero,
+              SizedBox(height: 8),
+              TextField(
+                controller: _rutController,
+                enabled: emailEnabled,
+                readOnly: true,
+                onTap: emailEnabled ? () async {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DigitarRutScreen(),
+                    ),
+                  );
+
+                  setPageState(() {
+                    if (result != null) {
+                      _rutController.text = result;
+                      _rutEntered = true;
+                    }
+                  });
+                } : null,
+                decoration: InputDecoration(
+                  hintText: 'RUT',
+                  hintStyle: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 16,
+                  ),
+                  filled: true,
+                  fillColor: emailEnabled 
+                      ? Color(0xFFE3F2FD)
+                      : Colors.grey[300],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
               ),
-              child: Text('Emitir'),
-            ),
+              SizedBox(height: 8),
+              TextField(
+                controller: _emailController,
+                enabled: emailEnabled && _rutEntered,
+                decoration: InputDecoration(
+                  hintText: 'Correo Electrónico',
+                  hintStyle: TextStyle(
+                    color: Colors.black54,
+                    fontSize: 16,
+                  ),
+                  filled: true,
+                  fillColor: emailEnabled && _rutEntered
+                      ? Color(0xFFE3F2FD)
+                      : Colors.grey[300],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4),
+                    borderSide: BorderSide(
+                      color: Colors.grey[300]!,
+                      width: 1,
+                    ),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+              ),
+              SizedBox(height: 24),
+              Container(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    _showLoadingDialog(context);
+                    try {
+                      Navigator.pop(context); // Close loading dialog first
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PreviewScreen(
+                            boletaItems: boletaItems,
+                            showAppBar: true,
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Error al generar la vista previa')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF1A90D9),
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search, size: 20),
+                      SizedBox(width: 8),
+                      Text('Vista Previa'),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (emailEnabled && _emailController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text(
+                                'Por favor ingrese un correo electrónico')),
+                      );
+                      return;
+                    }
+
+                    try {
+                      _showLoadingDialog(context, message: 'Emitiendo...');
+
+                      // Generate PDF first
+                      final pdf = await PDFService.generatePdf(boletaItems);
+                      final output = await getTemporaryDirectory();
+                      final file = File('${output.path}/boleta.pdf');
+                      await file.writeAsBytes(pdf);
+
+                      // Send email if enabled
+                      if (emailEnabled && _emailController.text.isNotEmpty) {
+                        try {
+                          // Validate email format
+                          final emailPattern = r'^[^@]+@[^@]+\.[^@]+';
+                          final isValidEmail = RegExp(emailPattern)
+                              .hasMatch(_emailController.text);
+                          if (!isValidEmail) {
+                            throw Exception('Correo electrónico no válido');
+                          }
+
+                          // Check if file exists
+                          if (!await file.exists()) {
+                            throw Exception('El archivo PDF no existe');
+                          }
+
+                          final smtpServer = gmail('luisebastian92@gmail.com',
+                              'scjr mmkf rjol tkgj');
+
+                          final message = Message()
+                            ..from = Address('luisebastian92@gmail.com',
+                                'SERVICIOS Y TECNOLOGIA LIMITADA')
+                            ..recipients.add(_emailController.text)
+                            ..subject = 'Boleta Electrónica'
+                            ..html = '''
+<div style="font-family: Arial, sans-serif;">
+Le informamos que ha recibido un nuevo documento electrónico. A continuación, el detalle:<br><br>
+
+<div style="font-family: monospace;">
+<b>De     </b> : SERVICIOS Y TECNOLOGIA LIMITADA<br>
+<b>Tipo   </b> : BOLETA ELECTRONICA<br>
+<b>Folio  </b> : 328111<br>
+<b>Monto  </b> : \$${formatter.format(_calculateTotal())}<br>
+<b>Fecha  </b> : ${DateFormat('dd-MM-yyyy').format(DateTime.now())}<br>
+</div><br>
+
+En el siguiente botón podrá ver y descargar su documento electrónico:<br><br>
+
+<b>Desis ws, saludos PRUEBA PRUEBA</b><br><br>
+
+<b>probandpp</b><br><br>
+
+Correo generado ${DateFormat('dd-MM-yyyy HH:mm').format(DateTime.now())}<br><br>
+
+<span style="font-size: 11px;">NOTA: El archivo adjunto con extensión XML es únicamente para fines de Facturación Electrónica.</span>
+</div>'''
+                            ..attachments = [FileAttachment(file)];
+
+                          try {
+                            final sendReport = await send(message, smtpServer);
+                            print('Email sent: ' + sendReport.toString());
+                          } on MailerException catch (e) {
+                            print('Email not sent. \n' + e.toString());
+                            throw Exception(
+                                'Error al enviar el correo electrónico');
+                          }
+                        } catch (emailError) {
+                          Navigator.pop(context); // Close loading dialog
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Error al enviar el correo electrónico: $emailError'),
+                            ),
+                          );
+                          return;
+                        }
+                      }
+
+                      Navigator.pop(context); // Close loading dialog
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => BoletaSuccessScreen(
+                            folioNumber: '328111',
+                            pdfFile: file,
+                          ),
+                        ),
+                      );
+                    } catch (e) {
+                      Navigator.pop(context); // Close loading dialog
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error al emitir la boleta')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF4CAF50),
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                  child: Text('Emitir'),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

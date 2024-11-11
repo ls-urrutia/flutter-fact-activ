@@ -4,6 +4,9 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import './detalle_boleta_screen.dart';
 import '../../models/boleta_item.dart';
 import '../../controllers/database_helper.dart';
+import 'dart:async';
+import '../main_screen.dart';  // Add this import at the top
+
 
 class BoletaExpressScreen extends StatefulWidget {
   final String? codigo;
@@ -42,31 +45,34 @@ class _BoletaExpressScreenState extends State<BoletaExpressScreen> {
   // Add a boolean to track form validity
   bool _isFormValid = false;
 
+  // Add debouncing
+  Timer? _debounceTimer;
+
+  Timer? _totalCalculationTimer;
+
   @override
   void initState() {
     super.initState();
     codigoController.text = widget.codigo ?? '';
     descripcionController.text = widget.descripcion ?? '';
-
-    // Set initial values for controllers
     precioUnitarioController.text = widget.precioUnitario?.toString() ?? '';
     cantidadController.text = widget.cantidad?.toString() ?? '';
 
+    // Add listeners for total calculation with micro-delay
     if (widget.activateListener) {
-      precioUnitarioController.addListener(_updateTotal);
+      precioUnitarioController.addListener(_scheduleTotalUpdate);
     }
-    cantidadController.addListener(_updateTotal);
+    cantidadController.addListener(_scheduleTotalUpdate);
+
+    // Form validation with longer debounce
+    codigoController.addListener(_debouncedCheckFormValidity);
+    descripcionController.addListener(_debouncedCheckFormValidity);
 
     _loadBoletaItems();
-
-    // Add listeners to all controllers to check form validity
-    codigoController.addListener(_checkFormValidity);
-    descripcionController.addListener(_checkFormValidity);
-    cantidadController.addListener(_checkFormValidity);
-    precioUnitarioController.addListener(_checkFormValidity);
-
-    // Calculate initial total after setting the values
-    Future.microtask(_updateTotal);
+    Future.microtask(() {
+      _updateTotal();
+      _checkFormValidity();
+    });
   }
 
   Future<void> _loadBoletaItems() async {
@@ -107,37 +113,46 @@ class _BoletaExpressScreenState extends State<BoletaExpressScreen> {
     }
   }
 
+  void _debouncedCheckFormValidity() {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) _checkFormValidity();
+    });
+  }
+
+  void _scheduleTotalUpdate() {
+    if (_totalCalculationTimer?.isActive ?? false) _totalCalculationTimer!.cancel();
+    _totalCalculationTimer = Timer(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        _updateTotal();
+        _checkFormValidity();
+      }
+    });
+  }
+
   void _updateTotal() {
-    // Only show total if both fields have valid values
-    if (cantidadController.text.isEmpty ||
-        precioUnitarioController.text.isEmpty) {
-      valorTotalController.text =
-          ''; // Clear the total if either field is empty
+    if (!mounted) return;
+    
+    if (cantidadController.text.isEmpty || precioUnitarioController.text.isEmpty) {
+      valorTotalController.text = '';
       return;
     }
 
-    // Parse cantidad and precioUnitario
     final cantidad = int.tryParse(cantidadController.text);
     final precioUnitario = double.tryParse(precioUnitarioController.text);
 
-    // Only calculate and show total if both values are valid
     if (cantidad != null && precioUnitario != null) {
       final total = cantidad * precioUnitario;
-      valorTotalController.text = total.toStringAsFixed(0); // No decimals
+      valorTotalController.text = total.toStringAsFixed(0);
     } else {
-      valorTotalController.text =
-          ''; // Clear the total if either value is invalid
+      valorTotalController.text = '';
     }
 
-    // Optional: Format precioUnitario for display
     if (widget.activateListener && precioUnitario != null) {
-      if (precioUnitario % 1 == 0) {
-        precioUnitarioController.text = precioUnitario.toStringAsFixed(0);
-      } else {
-        precioUnitarioController.text = precioUnitario.toString();
-      }
+      precioUnitarioController.text = precioUnitario % 1 == 0 
+          ? precioUnitario.toStringAsFixed(0) 
+          : precioUnitario.toString();
 
-      // Ensure the cursor stays at the end of the text
       precioUnitarioController.selection = TextSelection.fromPosition(
         TextPosition(offset: precioUnitarioController.text.length),
       );
@@ -154,16 +169,19 @@ class _BoletaExpressScreenState extends State<BoletaExpressScreen> {
 
   @override
   void dispose() {
-    // Remove listeners before disposing
+    _totalCalculationTimer?.cancel();
+    _debounceTimer?.cancel();
+    
     if (widget.activateListener) {
-      precioUnitarioController.removeListener(_updateTotal);
+      precioUnitarioController.removeListener(_scheduleTotalUpdate);
     }
-    codigoController.removeListener(_checkFormValidity);
-    descripcionController.removeListener(_checkFormValidity);
-    cantidadController.removeListener(_checkFormValidity);
-    precioUnitarioController.removeListener(_checkFormValidity);
+    cantidadController.removeListener(_scheduleTotalUpdate);
+    
+    codigoController.removeListener(_debouncedCheckFormValidity);
+    descripcionController.removeListener(_debouncedCheckFormValidity);
+    cantidadController.removeListener(_debouncedCheckFormValidity);
+    precioUnitarioController.removeListener(_debouncedCheckFormValidity);
 
-    // Dispose controllers
     Future.microtask(() {
       codigoController.dispose();
       descripcionController.dispose();
@@ -183,20 +201,51 @@ class _BoletaExpressScreenState extends State<BoletaExpressScreen> {
 
   // Add method to check form validity
   void _checkFormValidity() {
+    if (!mounted) return;
+    
+    final codigo = codigoController.text;
+    final descripcion = descripcionController.text;
+    final cantidad = int.tryParse(cantidadController.text);
+    final precioUnitario = double.tryParse(precioUnitarioController.text);
+    
     setState(() {
-      _isFormValid = codigoController.text.isNotEmpty &&
-          descripcionController.text.isNotEmpty &&
-          cantidadController.text.isNotEmpty &&
-          precioUnitarioController.text.isNotEmpty &&
-          (double.tryParse(precioUnitarioController.text) ?? 0) > 0 &&
-          (int.tryParse(cantidadController.text) ?? 0) > 0;
+      _isFormValid = codigo.isNotEmpty &&
+          descripcion.isNotEmpty &&
+          cantidad != null &&
+          cantidad > 0 &&
+          precioUnitario != null &&
+          precioUnitario > 0 &&
+          valorTotalController.text.isNotEmpty;
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () async {
+            // If we're editing (have an id), just go back
+            if (widget.id != null) {
+              Navigator.pop(context);
+              return;
+            }
+            
+            // Otherwise, clear database and go to main screen
+            final items = await _dbHelper.getBoletaItems();
+            for (var item in items) {
+              await _dbHelper.deleteBoletaItem(item.id!);
+            }
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => MainScreen(),
+              ),
+              (Route<dynamic> route) => false,
+            );
+          },
+        ),
         title: Text(
           'Boleta Express',
           style: TextStyle(fontSize: 22),

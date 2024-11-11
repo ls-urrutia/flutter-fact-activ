@@ -105,6 +105,10 @@ class _DigitarRutScreenState extends State<DigitarRutScreen> {
               readOnly: true,
               decoration: InputDecoration(
                 labelText: 'RUT',
+                prefixIcon: Icon(
+                  Icons.check_circle,
+                  color: isValidInput ? Colors.green : Colors.grey[400],
+                ),
                 suffixIcon: IconButton(
                   icon: Icon(Icons.backspace_outlined),
                   onPressed: _deleteNumber,
@@ -146,7 +150,7 @@ class _DigitarRutScreenState extends State<DigitarRutScreen> {
                     ? () => Navigator.pop(context, rutInput)
                     : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF1A90D9),
+                  backgroundColor: Color(0xFF0D47A1),
                   padding: EdgeInsets.symmetric(vertical: 16),
                   disabledBackgroundColor: Colors.grey,
                 ),
