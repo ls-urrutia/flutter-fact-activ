@@ -146,7 +146,8 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
     boletaItems.clear();
   }
 
-  void _showLoadingDialog(BuildContext context, {String message = "Vista Previa..."}) {
+  void _showLoadingDialog(BuildContext context,
+      {String message = "Vista Previa..."}) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -225,7 +226,9 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                               } catch (e) {
                                 print('Error saving item: $e');
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error al guardar el item')),
+                                  SnackBar(
+                                      content:
+                                          Text('Error al guardar el item')),
                                 );
                               }
                             },
@@ -577,7 +580,9 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                               height: 20,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: emailEnabled ? Color(0xFFFFB74D) : Colors.white,
+                                color: emailEnabled
+                                    ? Color(0xFFFFB74D)
+                                    : Colors.white,
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.2),
@@ -599,21 +604,23 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                 controller: _rutController,
                 enabled: emailEnabled,
                 readOnly: true,
-                onTap: emailEnabled ? () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DigitarRutScreen(),
-                    ),
-                  );
+                onTap: emailEnabled
+                    ? () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DigitarRutScreen(),
+                          ),
+                        );
 
-                  setPageState(() {
-                    if (result != null) {
-                      _rutController.text = result;
-                      _rutEntered = true;
-                    }
-                  });
-                } : null,
+                        setPageState(() {
+                          if (result != null) {
+                            _rutController.text = result;
+                            _rutEntered = true;
+                          }
+                        });
+                      }
+                    : null,
                 decoration: InputDecoration(
                   hintText: 'RUT',
                   hintStyle: TextStyle(
@@ -621,9 +628,8 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                     fontSize: 16,
                   ),
                   filled: true,
-                  fillColor: emailEnabled 
-                      ? Color(0xFFE3F2FD)
-                      : Colors.grey[300],
+                  fillColor:
+                      emailEnabled ? Color(0xFFE3F2FD) : Colors.grey[300],
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4),
                     borderSide: BorderSide(
@@ -645,7 +651,8 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                       width: 1,
                     ),
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
               ),
               SizedBox(height: 8),
@@ -683,7 +690,8 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                       width: 1,
                     ),
                   ),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 ),
               ),
               SizedBox(height: 24),
@@ -768,16 +776,12 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                             throw Exception('El archivo PDF no existe');
                           }
 
-                          final smtpServer = gmail(
-                            dotenv.env['EMAIL_ADDRESS']!,
-                            dotenv.env['EMAIL_PASSWORD']!
-                          );
+                          final smtpServer = gmail(dotenv.env['EMAIL_ADDRESS']!,
+                              dotenv.env['EMAIL_PASSWORD']!);
 
                           final message = Message()
-                            ..from = Address(
-                              dotenv.env['EMAIL_ADDRESS']!,
-                              'SERVICIOS Y TECNOLOGIA LIMITADA'
-                            )
+                            ..from = Address(dotenv.env['EMAIL_ADDRESS']!,
+                                'SERVICIOS Y TECNOLOGIA LIMITADA')
                             ..recipients.add(_emailController.text)
                             ..subject = 'Boleta Electrónica'
                             ..html = '''
