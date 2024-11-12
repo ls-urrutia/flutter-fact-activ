@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'main_screen.dart'; // Correct path to MainScreen
 import 'registro_screen.dart';
 import '../controllers/database_helper.dart'; // Correct path to DatabaseHelper
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -20,8 +21,12 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    final email = _usernameController.text; // Change to email
+    final email = _usernameController.text;
     final password = _passwordController.text;
+
+    // Store logged in user email in shared preferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('loggedInUser', email);
 
     // Check for default admin credentials
     if (email == 'admin@facturacion.cl' && password == '123') {

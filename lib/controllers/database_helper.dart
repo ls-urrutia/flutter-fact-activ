@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/boleta_item.dart';
 import '../models/product.dart';
+import '../models/boleta_document.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -65,6 +66,19 @@ class DatabaseHelper {
         cantidad INTEGER NOT NULL,
         precioUnitario REAL NOT NULL,
         valorTotal REAL NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS boleta_records(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        folio TEXT,
+        rut TEXT,
+        total REAL,
+        fecha TEXT,
+        pdfPath TEXT,
+        estado TEXT,
+        usuario TEXT
       )
     ''');
   }
@@ -266,6 +280,52 @@ class DatabaseHelper {
     return result.isNotEmpty;
   }
 
+  Future<void> createBoletaRecordsTable() async {
+    final db = await database;
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS boleta_records(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        folio TEXT,
+        rut TEXT,
+        total REAL,
+        fecha TEXT,
+        pdfPath TEXT,
+        estado TEXT,
+        usuario TEXT
+      )
+    ''');
+  }
+
+  Future<int> insertBoletaRecord(BoletaRecord record) async {
+    final db = await database;
+    return await db.insert('boleta_records', record.toMap());
+  }
+
+  Future<List<BoletaRecord>> getBoletaRecords() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('boleta_records');
+    return List.generate(maps.length, (i) => BoletaRecord.fromMap(maps[i]));
+  }
+
+  Future<String> getNextFolio() async {
+    final db = await database;
+    final result = await db.rawQuery('SELECT MAX(CAST(folio AS INTEGER)) as maxFolio FROM boleta_records');
+    final currentMaxFolio = result.first['maxFolio'] as int? ?? 0;
+    return (currentMaxFolio + 1).toString().padLeft(6, '0');
+  }
+
+  Future<bool> deleteBoletaRecord(String folio) async {
+    try {
+      final db = await database;
+      final result = await db.delete(
+        'boleta_records',
+        where: 'folio = ?',
+        whereArgs: [folio],
+      );
+      return result > 0;
+    } catch (e) {
+      print('Error deleting boleta record: $e');
+      return false;
+    }
+  }
 }
-
-

@@ -178,6 +178,9 @@ class _CrearProductosScreenState extends State<CrearProductosScreen> {
                       border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Por favor ingrese el stock';

@@ -13,6 +13,8 @@ import '../../services/pdf_service.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/boleta_document.dart';
 
 class DetalleBoletaScreen extends StatefulWidget {
   final String codigo;
@@ -47,10 +49,13 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
 
   bool _rutEntered = false;
 
+  String? loggedInUser;
+
   @override
   void initState() {
     super.initState();
     _loadBoletaItems();
+    _loadLoggedInUser();
   }
 
   Future<void> _loadBoletaItems() async {
@@ -170,6 +175,21 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
     // Implement your PDF generation logic here
     // Return the generated PDF as a list of bytes
     return []; // Placeholder return
+  }
+
+  // Add to detalle_boleta_screen.dart after generating PDF
+  Future<String> _storePdfPermanently(List<int> pdfBytes, String folio) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/boleta_$folio.pdf');
+    await file.writeAsBytes(pdfBytes);
+    return file.path;
+  }
+
+  Future<void> _loadLoggedInUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      loggedInUser = prefs.getString('loggedInUser') ?? 'admin@facturacion.cl';
+    });
   }
 
   @override
@@ -453,7 +473,7 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                                     'Valor Total: ',
                                     style: TextStyle(fontSize: 11),
                                   ),
-                                  SizedBox(width: 20),
+                                  SizedBox(width: 15),
                                   Text(
                                     '\$${formatter.format(item.valorTotal)}',
                                     style: TextStyle(
@@ -756,9 +776,26 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
 
                       // Generate PDF first
                       final pdf = await PDFService.generatePdf(boletaItems);
-                      final output = await getTemporaryDirectory();
-                      final file = File('${output.path}/boleta.pdf');
+                      final output = await getApplicationDocumentsDirectory();
+                      final file = File(
+                          '${output.path}/boleta_${DateTime.now().millisecondsSinceEpoch}.pdf');
                       await file.writeAsBytes(pdf);
+
+                      // Before creating the boletaRecord, get the next folio
+                      final String nextFolio = await _dbHelper.getNextFolio();
+
+                      // Save boleta record
+                      final boletaRecord = BoletaRecord(
+                        folio: nextFolio,
+                        rut: _rutController.text,
+                        total: _calculateTotal(),
+                        fecha: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+                        pdfPath: file.path,
+                        estado: 'Emitido',
+                        usuario: loggedInUser ?? 'admin@facturacion.cl',
+                      );
+
+                      await _dbHelper.insertBoletaRecord(boletaRecord);
 
                       // Send email if enabled
                       if (emailEnabled && _emailController.text.isNotEmpty) {
@@ -833,7 +870,7 @@ Correo generado ${DateFormat('dd-MM-yyyy HH:mm').format(DateTime.now())}<br><br>
                         context,
                         MaterialPageRoute(
                           builder: (context) => BoletaSuccessScreen(
-                            folioNumber: '328111',
+                            folioNumber: nextFolio,
                             pdfFile: file,
                           ),
                         ),

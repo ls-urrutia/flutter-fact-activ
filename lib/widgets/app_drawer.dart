@@ -7,6 +7,7 @@ import '../views/login_screen.dart'; // Import the login screen
 import '../views/boleta_express/boleta_express_screen.dart'; // Add this import
 import '../views/productos/crear_productos_screen.dart';  // Add this import
 import '../views/productos/listado_productos_screen.dart';  // Add this import
+import '../views/libro_ventas/libro_ventas_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   @override
@@ -23,6 +24,17 @@ class AppDrawer extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => MainScreen()),
+              );
+            },
+          ),
+          ListTile(
+            title: Text('Libro de Ventas'),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LibroVentasScreen()),
               );
             },
           ),
@@ -89,6 +101,17 @@ class AppDrawer extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ListadoProductosScreen()),
+              );
+            },
+          ),
+          ListTile(
+            title: Text('Libro de Ventas'),
+            trailing: Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LibroVentasScreen()),
               );
             },
           ),
