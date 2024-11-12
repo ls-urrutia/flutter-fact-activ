@@ -104,9 +104,9 @@ class _CrearProductosScreenState extends State<CrearProductosScreen> {
     _descripcionController.clear();
     _stockController.clear();
     _precioController.clear();
-    _bodegaController.clear();
     setState(() {
       _activo = true;
+      _bodegaController.text = 'CASA MATRIZ';
     });
   }
 

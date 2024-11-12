@@ -12,6 +12,7 @@ import '../../views/boleta_express/boleta_success_screen.dart';
 import '../../services/pdf_service.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class DetalleBoletaScreen extends StatefulWidget {
   final String codigo;
@@ -767,12 +768,16 @@ class _DetalleBoletaScreenState extends State<DetalleBoletaScreen> {
                             throw Exception('El archivo PDF no existe');
                           }
 
-                          final smtpServer = gmail('luisebastian92@gmail.com',
-                              'scjr mmkf rjol tkgj');
+                          final smtpServer = gmail(
+                            dotenv.env['EMAIL_ADDRESS']!,
+                            dotenv.env['EMAIL_PASSWORD']!
+                          );
 
                           final message = Message()
-                            ..from = Address('luisebastian92@gmail.com',
-                                'SERVICIOS Y TECNOLOGIA LIMITADA')
+                            ..from = Address(
+                              dotenv.env['EMAIL_ADDRESS']!,
+                              'SERVICIOS Y TECNOLOGIA LIMITADA'
+                            )
                             ..recipients.add(_emailController.text)
                             ..subject = 'Boleta Electrónica'
                             ..html = '''

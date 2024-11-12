@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'controllers/database_helper.dart';
 import 'views/login_screen.dart'; // Import the login screen
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
+  await dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
   // Initialize the database
   await DatabaseHelper().database;

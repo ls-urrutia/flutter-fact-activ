@@ -17,7 +17,6 @@ class PDFService {
     // Calculate totals
     double total = items.fold(0.0, (sum, item) => sum + item.valorTotal);
     double iva = total * 0.19;
-    double totalConIva = total + iva;
 
     // Create page format
     final pageFormat = PdfPageFormat(
