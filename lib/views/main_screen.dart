@@ -4,6 +4,8 @@ import 'creacion_cuenta_screen.dart';
 import 'listado_screen.dart';
 import 'user_statistics_screen.dart';
 import 'boleta_express/boleta_express_screen.dart';
+import 'productos/crear_productos_screen.dart';
+import 'productos/listado_productos_screen.dart';
 
 class MainScreen extends StatelessWidget {
   @override
@@ -136,6 +138,54 @@ class MainScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                       builder: (context) => BoletaExpressScreen()),
+                );
+              },
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Color(0xFF52C5F2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.only(top: 1, bottom: 1, left: 1, right: 1),
+            child: ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              title: Text(
+                'Crear Producto',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: Icon(Icons.chevron_right, color: Colors.white),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CrearProductosScreen()),
+                );
+              },
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Color(0xFFA0A090),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: EdgeInsets.only(top: 1, bottom: 1, left: 1, right: 1),
+            child: ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              title: Text(
+                'Listado de Productos',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: Icon(Icons.chevron_right, color: Colors.white),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ListadoProductosScreen()),
                 );
               },
             ),

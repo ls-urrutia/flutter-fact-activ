@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/boleta_item.dart';
+import '../models/product.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -46,10 +47,11 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE products (
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo TEXT NOT NULL UNIQUE,
         stock INTEGER NOT NULL,
-        description TEXT NOT NULL,
-        price REAL NOT NULL,
+        descripcion TEXT NOT NULL,
+        precio double NOT NULL,
         bodega TEXT NOT NULL,
         activo INTEGER NOT NULL DEFAULT 1
       )
@@ -182,4 +184,88 @@ class DatabaseHelper {
       _database = null;
     }
   }
+
+  Future<void> insertProduct(Product product) async {
+    try {
+      final db = await database;
+      if (!db.isOpen) {
+        _database = null;
+        return insertProduct(product);
+      }
+
+      await db.transaction((txn) async {
+        await txn.insert(
+          'products',
+          product.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.abort,
+        );
+      });
+      print('Product inserted successfully');
+    } catch (e) {
+      print('Error inserting product: $e');
+      if (e.toString().contains('database_closed')) {
+        _database = null;
+        return insertProduct(product);
+      }
+      rethrow;
+    }
+  }
+
+  Future<List<Product>> getProducts() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('products');
+    return List.generate(maps.length, (i) {
+      return Product.fromMap(maps[i]);
+    });
+  }
+
+  Future<bool> checkIfTableExists(String tableName) async {
+    final db = await database;
+    var tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+      [tableName],
+    );
+    print('Tables found: ${tables.length}');
+    return tables.isNotEmpty;
+  }
+
+  Future<List<String>> getAllTables() async {
+    final db = await database;
+    var tables = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table'",
+    );
+    return tables.map((table) => table['name'] as String).toList();
+  }
+
+// Method to check database status
+  Future<bool> isDatabaseOpen() async {
+    try {
+      final db = await database;
+      return db.isOpen;
+    } catch (e) {
+      print('Error checking database status: $e');
+      return false;
+    }
+  }
+
+  // Method to explicitly close database
+  Future<void> closeDatabase() async {
+    if (_database != null && _database!.isOpen) {
+      await _database!.close();
+      _database = null;
+    }
+  }
+
+  Future<bool> checkProductExists(String codigo) async {
+    final db = await database;
+    final result = await db.query(
+      'products',
+      where: 'codigo = ?',
+      whereArgs: [codigo],
+    );
+    return result.isNotEmpty;
+  }
+
 }
+
+

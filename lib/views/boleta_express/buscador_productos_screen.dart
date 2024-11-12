@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
+import '../../controllers/database_helper.dart';
 import 'productos_filtrados_screen.dart';
+import 'package:flutter/services.dart';
 
 class BuscadorProductosScreen extends StatefulWidget {
   @override
@@ -9,30 +11,7 @@ class BuscadorProductosScreen extends StatefulWidget {
 }
 
 class _BuscadorProductosScreenState extends State<BuscadorProductosScreen> {
-  final List<Product> products = [
-    Product(
-        id: 1,
-        stock: 10,
-        descripcion: 'Coca Cola 2L',
-        precio: 1800,
-        bodega: 'Bodega CCU',
-        activo: true),
-    Product(
-        id: 2,
-        stock: 5,
-        descripcion: 'Harina 1Kg Collico',
-        precio: 1500,
-        bodega: 'Bodega Collico',
-        activo: false),
-    Product(
-        id: 3,
-        stock: 0,
-        descripcion: 'Bolsa basura 80x100, 10 Un',
-        precio: 1000,
-        bodega: 'Bodega Lider',
-        activo: true),
-  ];
-
+  List<Product> products = [];
   List<Product> filteredProducts = [];
   final TextEditingController codigoController = TextEditingController();
   final TextEditingController descripcionController = TextEditingController();
@@ -41,14 +20,33 @@ class _BuscadorProductosScreenState extends State<BuscadorProductosScreen> {
   @override
   void initState() {
     super.initState();
-    filteredProducts = products;
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      final dbProducts = await DatabaseHelper().getProducts();
+      setState(() {
+        products = dbProducts;
+        filteredProducts = dbProducts;
+      });
+    } catch (e) {
+      print('Error loading products: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al cargar los productos'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _searchProducts() {
     String codigo = codigoController.text.toLowerCase();
     String descripcion = descripcionController.text.toLowerCase();
 
-    // Show alert only if both codigo and descripcion are empty
     if (codigo.isEmpty && descripcion.isEmpty) {
       showDialog(
         context: context,
@@ -58,9 +56,7 @@ class _BuscadorProductosScreenState extends State<BuscadorProductosScreen> {
             content: Text('Debe agregar algún parámetro de búsqueda'),
             actions: [
               TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+                onPressed: () => Navigator.of(context).pop(),
                 child: Text('Aceptar'),
               ),
             ],
@@ -70,42 +66,38 @@ class _BuscadorProductosScreenState extends State<BuscadorProductosScreen> {
       return;
     }
 
-    setState(() {
-      // Exact matches
-      List<Product> exactMatches = products.where((product) {
-        return product.id.toString() == codigo &&
-            product.descripcion.toLowerCase().contains(descripcion) &&
-            (_activeFilter == null || product.activo == _activeFilter);
-      }).toList();
+    List<Product> exactMatches = [];
+    List<Product> partialMatches = [];
 
-      // Partial matches
-      List<Product> partialMatches = products.where((product) {
-        return product.id.toString().contains(codigo) &&
-            product.descripcion.toLowerCase().contains(descripcion) &&
-            (_activeFilter == null || product.activo == _activeFilter) &&
-            product.id.toString() != codigo;
-      }).toList();
+    for (var product in products) {
+      bool matchesFilter = _activeFilter == null || product.activo == _activeFilter;
+      if (!matchesFilter) continue;
 
-      // Determine if we have an exact match
-      bool hasExactMatch = exactMatches.isNotEmpty;
-
-      // Combine results based on whether we have an exact match
-      if (hasExactMatch) {
-        filteredProducts = [...exactMatches, ...partialMatches];
-      } else {
-        filteredProducts = partialMatches;
+      if (codigo.isNotEmpty) {
+        if (product.codigo == codigo) {
+          exactMatches.add(product);
+        } else if (product.codigo.toLowerCase().contains(codigo)) {
+          partialMatches.add(product);
+        }
+      } else if (descripcion.isNotEmpty) {
+        if (product.descripcion.toLowerCase() == descripcion) {
+          exactMatches.add(product);
+        } else if (product.descripcion.toLowerCase().contains(descripcion)) {
+          partialMatches.add(product);
+        }
       }
+    }
 
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FilteredProductsScreen(
-            filteredProducts: filteredProducts,
-            hasExactMatch: hasExactMatch,
-          ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FilteredProductsScreen(
+          exactMatches: exactMatches,
+          partialMatches: partialMatches,
+          hasExactMatch: exactMatches.isNotEmpty,
         ),
-      );
-    });
+      ),
+    );
   }
 
   @override
