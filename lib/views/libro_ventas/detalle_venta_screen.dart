@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../../models/boleta_document.dart';
 import 'dart:io';
 import '../../views/boleta_express/vista_previa_screen.dart';
-import '../../controllers/database_helper.dart';
 
 class DetalleVentaScreen extends StatelessWidget {
   final BoletaRecord boleta;

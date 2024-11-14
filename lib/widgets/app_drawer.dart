@@ -105,17 +105,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           ListTile(
-            title: Text('Libro de Ventas'),
-            trailing: Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LibroVentasScreen()),
-              );
-            },
-          ),
-          ListTile(
             title: Text('Cerrar Sesión'),
             trailing: Icon(Icons.exit_to_app),
             onTap: () {
