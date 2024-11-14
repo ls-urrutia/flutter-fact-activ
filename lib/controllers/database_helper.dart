@@ -328,4 +328,22 @@ class DatabaseHelper {
       return false;
     }
   }
+
+  Future<int> updateBoletaRecord(BoletaRecord record) async {
+    final db = await database;
+    return await db.update(
+      'boleta_records',
+      record.toMap(),
+      where: 'folio = ?',
+      whereArgs: [record.folio],
+    );
+  }
+
+  Future<String> getNextCreditNoteFolio() async {
+    final db = await database;
+    final result = await db.rawQuery(
+      "SELECT MAX(CAST(folio AS INTEGER)) as maxFolio FROM boleta_records WHERE estado = 'Nota Credito'");
+    final currentMaxFolio = result.first['maxFolio'] as int? ?? 0;
+    return (currentMaxFolio + 1).toString().padLeft(6, '0');
+  }
 }

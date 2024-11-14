@@ -51,20 +51,51 @@ class _LibroVentasScreenState extends State<LibroVentasScreen> {
         itemCount: boletas.length,
         itemBuilder: (context, index) {
           final boleta = boletas[index];
+          final isNotaCredito = boleta.estado == 'Nota Credito';
+
           return Container(
             margin: EdgeInsets.symmetric(vertical: 1),
             color: index % 2 == 0 ? Colors.white : Color(0xFFE3F2FD),
             child: ListTile(
               contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              leading: Icon(Icons.insert_drive_file, size: 40, color: Colors.blue),
+              leading: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    Icons.description,
+                    size: 40,
+                    color: isNotaCredito ? Colors.red : Colors.blue,
+                  ),
+                  if (isNotaCredito)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.remove,
+                          size: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
               title: Text(
-                'Cliente Boleta',
+                'Cliente ${isNotaCredito ? "Nota Crédito" : "Boleta"}',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('BOLETA ELECTRONICA', style: TextStyle(fontSize: 12)),
+                  Text(
+                    isNotaCredito ? 'NOTA DE CREDITO ELECTRONICA' : 'BOLETA ELECTRONICA',
+                    style: TextStyle(fontSize: 12)
+                  ),
                   Text(
                     '${boleta.folio} / ${boleta.rut?.isEmpty ?? true ? "SIN REGISTRO" : boleta.rut}',
                     style: TextStyle(fontSize: 12)

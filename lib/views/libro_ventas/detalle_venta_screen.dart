@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../models/boleta_document.dart';
 import 'dart:io';
 import '../../views/boleta_express/vista_previa_screen.dart';
+import 'lv_anulacion_documento.dart';
 
 class DetalleVentaScreen extends StatelessWidget {
   final BoletaRecord boleta;
@@ -11,6 +12,9 @@ class DetalleVentaScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isNotaCredito = boleta.estado == 'Nota Credito';
+    final isAnulado = boleta.estado == 'Anulado';
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Detalle Venta'),
@@ -197,66 +201,32 @@ class DetalleVentaScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                /* Commented out Anular Documento button for future use
-                SizedBox(height: 8),
-                TextButton(
-                  onPressed: () async {
-                    // Show confirmation dialog
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: Text('Confirmar Eliminación'),
-                        content: Text('¿Está seguro que desea eliminar este documento?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, false),
-                            child: Text('Cancelar'),
+                if (!isNotaCredito && !isAnulado) ...[
+                  SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AnulacionDocumentoScreen(
+                            boleta: boleta,
                           ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            child: Text('Anular'),
-                            style: TextButton.styleFrom(foregroundColor: Colors.red),
-                          ),
-                        ],
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Anular Documento',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: TextButton.styleFrom(
+                      backgroundColor: Color(0xFFFF5252),
+                      minimumSize: Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
                       ),
-                    );
-
-                    if (confirm == true) {
-                      try {
-                        final dbHelper = DatabaseHelper();
-                        final success = await dbHelper.deleteBoletaRecord(boleta.folio);
-
-                        if (success) {
-                          Navigator.of(context).pop(true);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Documento eliminado correctamente')),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('No se pudo anular el documento. Intente nuevamente.')),
-                          );
-                        }
-                      } catch (e) {
-                        print('Error al anular documento: $e');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error al anular el documento: ${e.toString()}')),
-                        );
-                      }
-                    }
-                  },
-                  child: Text(
-                    'Anular Documento',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Color(0xFFFF5252),
-                    minimumSize: Size(double.infinity, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
                     ),
                   ),
-                ),
-                */
+                ],
               ],
             ),
           ),

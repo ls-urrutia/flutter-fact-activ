@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'controllers/database_helper.dart';
 import 'views/login_screen.dart'; // Import the login screen
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   await dotenv.load(fileName: ".env");
@@ -55,6 +56,14 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: LoginScreen(),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        Locale('es', 'ES'),
+      ],
     );
   }
 }

@@ -3,12 +3,13 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 import '../models/boleta_item.dart';
 import 'package:intl/intl.dart';
+import '../models/boleta_document.dart'; // Adjust the path as necessary
 
 class PDFService {
   static Future<Uint8List> generatePdf(List<BoletaItem> items) async {
     final pdf = pw.Document();
     final formatter = NumberFormat('#,###', 'es_CL');
-    
+
     // Load the vista previa image
     final vistaPreviaImageBytes =
         await _loadImageFromAssets('assets/images/vista_previa_barcode.png');
@@ -75,7 +76,8 @@ class PDFService {
                 // Table header
                 _buildTableHeader(),
                 // Table rows
-                ...items.map((item) => _buildTableRow(item, formatter, items.indexOf(item))),
+                ...items.map((item) =>
+                    _buildTableRow(item, formatter, items.indexOf(item))),
               ],
             ),
           ),
@@ -110,8 +112,7 @@ class PDFService {
                   style: pw.TextStyle(fontSize: 10),
                   textAlign: pw.TextAlign.center),
               pw.SizedBox(height: 8),
-              pw.Text(
-                  'GRAN AVENIDA 5018, Depto. 208\nSAN MIGUEL - SANTIAGO',
+              pw.Text('GRAN AVENIDA 5018, Depto. 208\nSAN MIGUEL - SANTIAGO',
                   style: pw.TextStyle(fontSize: 10),
                   textAlign: pw.TextAlign.center),
               pw.Text('Fono: (56-2) 550 552 51',
@@ -134,19 +135,18 @@ class PDFService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text('R.U.T.: 77.574.330-1',
-                  style:
-                      pw.TextStyle(color: PdfColors.red, fontSize: 10)),
+                  style: pw.TextStyle(color: PdfColors.red, fontSize: 10)),
               pw.SizedBox(height: 4),
               pw.Text('BOLETA ELECTRONICA',
-                  style: pw.TextStyle(
-                      color: PdfColors.redAccent, fontSize: 10)),
+                  style:
+                      pw.TextStyle(color: PdfColors.redAccent, fontSize: 10)),
               pw.Text('Nº SIN FOLIO',
-                  style: pw.TextStyle(
-                      color: PdfColors.redAccent, fontSize: 10)),
+                  style:
+                      pw.TextStyle(color: PdfColors.redAccent, fontSize: 10)),
               pw.SizedBox(height: 4),
               pw.Text('S.I.I. - SANTIAGO SUR',
-                  style: pw.TextStyle(
-                      color: PdfColors.redAccent, fontSize: 10)),
+                  style:
+                      pw.TextStyle(color: PdfColors.redAccent, fontSize: 10)),
               pw.Text('Santiago, 08 de noviembre de 2024',
                   style: pw.TextStyle(fontSize: 10)),
             ],
@@ -172,7 +172,8 @@ class PDFService {
     );
   }
 
-  static pw.Widget _buildFooter(pw.MemoryImage vistaPreviaImage, NumberFormat formatter, double total, double iva) {
+  static pw.Widget _buildFooter(pw.MemoryImage vistaPreviaImage,
+      NumberFormat formatter, double total, double iva) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       crossAxisAlignment: pw.CrossAxisAlignment.end,
@@ -230,16 +231,14 @@ class PDFService {
             pw.SizedBox(height: 10),
             pw.Row(
               children: [
-                pw.Text('Monto no fact: \$',
-                    style: pw.TextStyle(fontSize: 10)),
+                pw.Text('Monto no fact: \$', style: pw.TextStyle(fontSize: 10)),
                 pw.SizedBox(width: 20),
                 pw.Text('0', style: pw.TextStyle(fontSize: 10)),
               ],
             ),
             pw.Row(
               children: [
-                pw.Text('Valor a pagar: \$',
-                    style: pw.TextStyle(fontSize: 10)),
+                pw.Text('Valor a pagar: \$', style: pw.TextStyle(fontSize: 10)),
                 pw.SizedBox(width: 20),
                 pw.Text('0', style: pw.TextStyle(fontSize: 10)),
               ],
@@ -254,8 +253,7 @@ class PDFService {
               padding: pw.EdgeInsets.all(8),
               child: pw.Row(
                 children: [
-                  pw.Text('Observaciones: ',
-                      style: pw.TextStyle(fontSize: 9)),
+                  pw.Text('Observaciones: ', style: pw.TextStyle(fontSize: 9)),
                   pw.Text('null', style: pw.TextStyle(fontSize: 9)),
                 ],
               ),
@@ -291,29 +289,26 @@ class PDFService {
     );
   }
 
-  static pw.TableRow _buildTableRow(BoletaItem item, NumberFormat formatter, int index) {
+  static pw.TableRow _buildTableRow(
+      BoletaItem item, NumberFormat formatter, int index) {
     return pw.TableRow(
       children: [
         pw.Container(
           padding: pw.EdgeInsets.all(4),
-          child: pw.Text(
-              (index + 1).toString(),
-              style: pw.TextStyle(fontSize: 9)),
+          child:
+              pw.Text((index + 1).toString(), style: pw.TextStyle(fontSize: 9)),
         ),
         pw.Container(
           padding: pw.EdgeInsets.all(4),
-          child: pw.Text(item.codigo,
-              style: pw.TextStyle(fontSize: 9)),
+          child: pw.Text(item.codigo, style: pw.TextStyle(fontSize: 9)),
         ),
         pw.Container(
           padding: pw.EdgeInsets.all(4),
-          child: pw.Text(item.descripcion,
-              style: pw.TextStyle(fontSize: 9)),
+          child: pw.Text(item.descripcion, style: pw.TextStyle(fontSize: 9)),
         ),
         pw.Container(
           padding: pw.EdgeInsets.all(4),
-          child: pw.Text('UN',
-              style: pw.TextStyle(fontSize: 9)),
+          child: pw.Text('UN', style: pw.TextStyle(fontSize: 9)),
         ),
         pw.Container(
           padding: pw.EdgeInsets.all(4),
@@ -322,8 +317,7 @@ class PDFService {
         ),
         pw.Container(
           padding: pw.EdgeInsets.all(4),
-          child: pw.Text(
-              '\$ ${formatter.format(item.precioUnitario)}',
+          child: pw.Text('\$ ${formatter.format(item.precioUnitario)}',
               style: pw.TextStyle(fontSize: 9)),
         ),
         pw.Container(
@@ -333,11 +327,162 @@ class PDFService {
         ),
         pw.Container(
           padding: pw.EdgeInsets.all(4),
-          child: pw.Text(
-              '\$ ${formatter.format(item.valorTotal)}',
+          child: pw.Text('\$ ${formatter.format(item.valorTotal)}',
               style: pw.TextStyle(fontSize: 9)),
         ),
       ],
     );
+  }
+
+  static Future<Uint8List> generateNotaCredito(BoletaRecord boleta) async {
+    final pdf = pw.Document();
+    final formatter = NumberFormat('#,###', 'es_CL');
+
+    // Load the vista previa image
+    final vistaPreviaImageBytes =
+        await _loadImageFromAssets('assets/images/vista_previa_barcode.png');
+    final vistaPreviaImage = pw.MemoryImage(vistaPreviaImageBytes);
+
+    // Create page format
+    final pageFormat = PdfPageFormat(
+      21.0 * PdfPageFormat.cm,
+      29.7 * PdfPageFormat.cm,
+      marginAll: 1.0 * PdfPageFormat.cm,
+    );
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: pageFormat,
+        margin: pw.EdgeInsets.all(1.0 * PdfPageFormat.cm),
+        header: (context) => pw.Column(
+          children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Left side - Company information
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
+                    children: [
+                      pw.Text('SERVICIOS Y TECNOLOGIA',
+                          style: pw.TextStyle(
+                              fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                          'IMPORTACION Y EXPORTACION DE\nSOFTWARE, SUMINISTROS Y COMPUTADORES',
+                          style: pw.TextStyle(fontSize: 10),
+                          textAlign: pw.TextAlign.center),
+                      pw.Text(
+                          'GRAN AVENIDA 5018, Depto. 208\nSAN MIGUEL - SANTIAGO',
+                          style: pw.TextStyle(fontSize: 10),
+                          textAlign: pw.TextAlign.center),
+                    ],
+                  ),
+                ),
+                // Right side - Receipt details in red box
+                pw.Container(
+                  padding: pw.EdgeInsets.all(8),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.red, width: 1),
+                  ),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('R.U.T.: 77.574.330-1',
+                          style:
+                              pw.TextStyle(color: PdfColors.red, fontSize: 10)),
+                      pw.SizedBox(height: 4),
+                      pw.Text('NOTA DE CREDITO ELECTRONICA',
+                          style:
+                              pw.TextStyle(color: PdfColors.red, fontSize: 10)),
+                      pw.Text('Nº ${boleta.folio}',
+                          style:
+                              pw.TextStyle(color: PdfColors.red, fontSize: 10)),
+                      pw.SizedBox(height: 4),
+                      pw.Text(
+                          'Fecha: ${DateFormat('dd/MM/yyyy').format(DateTime.now())}',
+                          style: pw.TextStyle(fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 20),
+            // Client information
+            pw.Container(
+              decoration: pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
+              padding: pw.EdgeInsets.all(8),
+              child: pw.Row(
+                children: [
+                  pw.Text('RUT Cliente: ${boleta.rut}',
+                      style: pw.TextStyle(fontSize: 10)),
+                  pw.SizedBox(width: 20),
+                  pw.Text(
+                      'Documento Ref: Boleta Electrónica N° ${boleta.folio}',
+                      style: pw.TextStyle(fontSize: 10)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        footer: (context) => pw.Column(
+          children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Image(vistaPreviaImage, width: 200, height: 100),
+                    pw.Text('Timbre Electronico S.I.I.',
+                        style: pw.TextStyle(
+                            fontSize: 8, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Resolucion Nro. 80 del 22-08-2014',
+                        style: pw.TextStyle(fontSize: 8)),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                        'TOTAL NOTA DE CREDITO: \$${formatter.format(boleta.total)}',
+                        style: pw.TextStyle(
+                            fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        build: (context) => [
+          pw.Container(
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('ANULACIÓN DE DOCUMENTO',
+                    style: pw.TextStyle(
+                        fontSize: 12, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                    'Se anula boleta electrónica N° ${boleta.folio} por el siguiente motivo:',
+                    style: pw.TextStyle(fontSize: 10)),
+                pw.SizedBox(height: 20),
+                pw.Container(
+                  width: double.infinity,
+                  padding: pw.EdgeInsets.all(8),
+                  decoration:
+                      pw.BoxDecoration(border: pw.Border.all(width: 0.5)),
+                  child: pw.Text('ANULACIÓN DE DOCUMENTO',
+                      style: pw.TextStyle(fontSize: 10)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return pdf.save();
   }
 }
