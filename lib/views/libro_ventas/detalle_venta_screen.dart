@@ -10,6 +10,30 @@ class DetalleVentaScreen extends StatelessWidget {
 
   DetalleVentaScreen({required this.boleta});
 
+  void _showAnuladoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Anular Documento',
+            style: TextStyle(fontSize: 16),
+          ),
+          content: Text('Documento ya se encuentra anulado'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Aceptar',
+                style: TextStyle(color: Color(0xFF1A90D9)),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isNotaCredito = boleta.estado == 'Nota Credito';
@@ -201,25 +225,31 @@ class DetalleVentaScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (!isNotaCredito && !isAnulado) ...[
+                if (!isNotaCredito) ...[
                   SizedBox(height: 8),
                   TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AnulacionDocumentoScreen(
-                            boleta: boleta,
-                          ),
-                        ),
-                      );
-                    },
+                    onPressed: isAnulado 
+                      ? () => _showAnuladoDialog(context)
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AnulacionDocumentoScreen(
+                                boleta: boleta,
+                              ),
+                            ),
+                          );
+                        },
                     child: Text(
                       'Anular Documento',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
                     ),
                     style: TextButton.styleFrom(
-                      backgroundColor: Color(0xFFFF5252),
+                      backgroundColor: isAnulado 
+                        ? Colors.grey[400]  // Gray color for annulled documents
+                        : Color(0xFFFF5252), // Red color for active documents
                       minimumSize: Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.zero,

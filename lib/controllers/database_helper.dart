@@ -342,8 +342,8 @@ class DatabaseHelper {
   Future<String> getNextCreditNoteFolio() async {
     final db = await database;
     final result = await db.rawQuery(
-      "SELECT MAX(CAST(folio AS INTEGER)) as maxFolio FROM boleta_records WHERE estado = 'Nota Credito'");
+      "SELECT MAX(CAST(REPLACE(folio, 'NC', '') AS INTEGER)) as maxFolio FROM boleta_records WHERE estado = 'Nota Credito'");
     final currentMaxFolio = result.first['maxFolio'] as int? ?? 0;
-    return (currentMaxFolio + 1).toString().padLeft(6, '0');
+    return 'NC${(currentMaxFolio + 1).toString().padLeft(6, '0')}';
   }
 }

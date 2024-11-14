@@ -60,26 +60,18 @@ class _AnulacionDocumentoScreenState extends State<AnulacionDocumentoScreen> {
   bool get isFormValid => _motivoController.text.trim().isNotEmpty;
 
   // Add this method to show a loading dialog
-  void _showLoadingDialog(BuildContext context) {
+  void _showLoadingDialog(BuildContext context, {String message = "Emitiendo..."}) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return Center(
-          child: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text("Vista Previa..."),
-              ],
-            ),
+        return AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text(message),
+            ],
           ),
         );
       },
@@ -165,18 +157,21 @@ class _AnulacionDocumentoScreenState extends State<AnulacionDocumentoScreen> {
                 Expanded(
                   child: TextButton(
                     onPressed: () async {
-                      if (isFormValid) {
+                      _showLoadingDialog(context, message: "Vista Previa...");
+                      try {
                         final pdfBytes = await PDFService.generateNotaCredito(widget.boleta);
+                        Navigator.pop(context); // Close loading dialog
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => PDFScreen(pdfBytes: Uint8List.fromList(pdfBytes)),
                           ),
                         );
-                      } else {
-                        setState(() {
-                          _errorMessage = 'Por favor, ingrese un motivo de anulación.';
-                        });
+                      } catch (e) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error al generar la vista previa')),
+                        );
                       }
                     },
                     child: Text('Vista Previa', style: TextStyle(color: Colors.white)),

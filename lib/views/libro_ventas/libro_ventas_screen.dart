@@ -12,6 +12,7 @@ class LibroVentasScreen extends StatefulWidget {
 class _LibroVentasScreenState extends State<LibroVentasScreen> {
   final formatter = NumberFormat('#,###', 'es_CL');
   List<BoletaRecord> boletas = [];
+  int? selectedIndex;
 
   @override
   void initState() {
@@ -33,9 +34,17 @@ class _LibroVentasScreenState extends State<LibroVentasScreen> {
         builder: (context) => DetalleVentaScreen(boleta: boleta),
       ),
     );
-    
+
     if (result == true) {
       await _loadBoletas();
+    }
+  }
+
+  String _formatFolioDisplay(String folio) {
+    if (folio.startsWith('NC')) {
+      return folio;
+    } else {
+      return folio.padLeft(6, '0');
     }
   }
 
@@ -46,24 +55,40 @@ class _LibroVentasScreenState extends State<LibroVentasScreen> {
         title: Text('Libro de Ventas'),
         centerTitle: true,
         backgroundColor: Color(0xFF1A90D9),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.bar_chart_outlined), // Statistics/bars icon
+            onPressed: () {
+              // Add statistics functionality here
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.search), // Search icon
+            onPressed: () {
+              // Add search functionality here
+            },
+          ),
+        ],
       ),
       body: ListView.builder(
         itemCount: boletas.length,
         itemBuilder: (context, index) {
           final boleta = boletas[index];
           final isNotaCredito = boleta.estado == 'Nota Credito';
+          final isSelected = selectedIndex == index;
 
           return Container(
-            margin: EdgeInsets.symmetric(vertical: 1),
+            margin: EdgeInsets.symmetric(vertical: 0),
             color: index % 2 == 0 ? Colors.white : Color(0xFFE3F2FD),
             child: ListTile(
-              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              dense: true,
               leading: Stack(
                 alignment: Alignment.center,
                 children: [
                   Icon(
                     Icons.description,
-                    size: 40,
+                    size: 32,
                     color: isNotaCredito ? Colors.red : Colors.blue,
                   ),
                   if (isNotaCredito)
@@ -71,14 +96,14 @@ class _LibroVentasScreenState extends State<LibroVentasScreen> {
                       right: 0,
                       top: 0,
                       child: Container(
-                        padding: EdgeInsets.all(2),
+                        padding: EdgeInsets.all(1),
                         decoration: BoxDecoration(
                           color: Colors.red,
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.remove,
-                          size: 12,
+                          size: 10,
                           color: Colors.white,
                         ),
                       ),
@@ -87,19 +112,29 @@ class _LibroVentasScreenState extends State<LibroVentasScreen> {
               ),
               title: Text(
                 'Cliente ${isNotaCredito ? "Nota Crédito" : "Boleta"}',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: isSelected ? Color(0xFF1A90D9) : Colors.black,
+                ),
               ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isNotaCredito ? 'NOTA DE CREDITO ELECTRONICA' : 'BOLETA ELECTRONICA',
-                    style: TextStyle(fontSize: 12)
-                  ),
+                      isNotaCredito
+                          ? 'NOTA DE CREDITO ELECTRONICA'
+                          : 'BOLETA ELECTRONICA',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isSelected ? Color(0xFF1A90D9) : Colors.black87,
+                      )),
                   Text(
-                    '${boleta.folio} / ${boleta.rut?.isEmpty ?? true ? "SIN REGISTRO" : boleta.rut}',
-                    style: TextStyle(fontSize: 12)
-                  ),
+                      '${_formatFolioDisplay(boleta.folio)} / ${boleta.rut?.isEmpty ?? true ? "SIN REGISTRO" : boleta.rut}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: isSelected ? Color(0xFF1A90D9) : Colors.black87,
+                      )),
                 ],
               ),
               trailing: Row(
@@ -111,19 +146,38 @@ class _LibroVentasScreenState extends State<LibroVentasScreen> {
                     children: [
                       Text(
                         '\$${formatter.format(boleta.total)}',
-                        style: TextStyle(color: boleta.total < 0 ? Colors.red : Colors.black, fontSize: 14),
+                        style: TextStyle(
+                            color: isSelected
+                                ? Color(0xFF1A90D9)
+                                : (boleta.total < 0
+                                    ? Colors.red
+                                    : Colors.black),
+                            fontSize: 13),
                       ),
-                      Text(boleta.fecha, style: TextStyle(fontSize: 12)),
+                      Text(boleta.fecha,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color:
+                                isSelected ? Color(0xFF1A90D9) : Colors.black87,
+                          )),
                     ],
                   ),
                   SizedBox(width: 8),
                   Icon(
                     Icons.chevron_right,
-                    color: Colors.black.withOpacity(0.3),
+                    color: isSelected
+                        ? Color(0xFF1A90D9)
+                        : Colors.black.withOpacity(0.3),
+                    size: 20,
                   ),
                 ],
               ),
-              onTap: () => _showBoletaDetail(boleta),
+              onTap: () {
+                setState(() {
+                  selectedIndex = index;
+                });
+                _showBoletaDetail(boleta);
+              },
             ),
           );
         },
